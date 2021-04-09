@@ -3,7 +3,7 @@
 
 //connection to socket
 const socket = io.connect();
-
+const http = require("http");
 //================= CONFIG =================
 // Stream Audio
 let bufferSize = 2048,
@@ -25,7 +25,7 @@ var video = document.querySelector("#videoElement");
 //audio + Stream constraints
 const constraints = {
   audio: true,
-  video: false,
+  video: { facingMode: "user", width: window.innerWidth, height: window.innerHeight },
 };
 
 //================= RECORDING =================
@@ -49,6 +49,7 @@ function initRecording() {
 
     processor.onaudioprocess = function (e) {
       console.log('Audio processing');
+      console.log("isHateSpeech('love'): " + isHateSpeech("love you"))
       microphoneProcess(e);
     };
   };
@@ -140,7 +141,7 @@ socket.on('speechData', function (data) {
   var dataFinal = undefined || data.results[0].isFinal;
 
   if (dataFinal === false) {
-    // console.log(resultText.lastElementChild);
+     //console.log(resultText.lastElementChild);
     if (removeLastSentence) {
       resultText.lastElementChild.remove();
     }
@@ -276,6 +277,36 @@ window.onbeforeunload = function () {
     socket.emit('endGoogleCloudStream', '');
   }
 };
+
+//================= NLP-HATE-DETECTION =================
+function isHateSpeech(text){
+
+
+
+  let body = JSON.stringify({
+    text: text
+  })
+  let options = {
+    hostname: "localhost:9091",
+    path: "/label",
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    }
+  }
+  http
+  .request(options, res => {
+    let data = ""
+    res.on("data", d => {
+      data += d
+    })
+    res.on("end", () => {
+      console.log(data)
+    })
+  })
+  .on("error", console.error)
+  .end(body)
+}
 
 //================= SANTAS HELPERS =================
 
