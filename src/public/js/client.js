@@ -202,11 +202,11 @@ socket.on('hateSpeechDetection', function(data) {
   let hateSpeechSpan = document.getElementById('hateSpeechSpan');
   hateSpeechSpan.innerText = speechData.text;
   if(speechData.label === 0){
-    hateSpeechSpan.classList.remove('offensif')
-    hateSpeechSpan.classList.add("hate");
+    hateSpeechSpan.classList.remove('bg-warning')
+    hateSpeechSpan.classList.add("bg-danger");
   }else if(speechData.label === 1){
-    hateSpeechSpan.classList.remove('hate')
-    hateSpeechSpan.classList.add("offensif");
+    hateSpeechSpan.classList.remove('bg-danger')
+    hateSpeechSpan.classList.add("bg-warning");
   }else{
     //console.log("none hate speech");
   }
