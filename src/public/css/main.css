@@ -41,7 +41,11 @@ audio {
 .offensif {
   background-color: #FFA500;
 }
-
+video {
+  width: 500px;
+  height: 375px;
+  background-color: #666;
+}
 @-webkit-keyframes redGlow {
   from {
     background-color: #8c190a;

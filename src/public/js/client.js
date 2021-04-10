@@ -14,26 +14,38 @@ let bufferSize = 2048,
   globalStream;
 
 //vars
-let audioElement = document.querySelector('audio'),
+let videoElement = document.querySelector('video'),
   finalWord = false,
   resultText = document.getElementById('ResultText'),
   resultHateSpeechText = document.getElementById('ResultHateSpeechText'),
   removeLastSentence = true,
   streamStreaming = false;
 
-var video = document.querySelector("#videoElement");
-
-//audio + Stream constraints
+//audio + Video Stream constraints
 const constraints = {
   audio: true,
-  video: { facingMode: "user", width: window.innerWidth, height: window.innerHeight },
+  video: true,
 };
 
 //================= RECORDING =================
 
 function initRecording() {
+
   socket.emit('startGoogleCloudStream', ''); //init socket Google Speech Connection
+
   streamStreaming = true;
+
+  var handleSuccess = function (stream) {
+    videoElement.srcObject = stream;
+    globalStream = stream;
+    input = context.createMediaStreamSource(stream);
+    input.connect(processor);
+
+    processor.onaudioprocess = function (e) {
+      microphoneProcess(e);
+    };
+  };
+
   AudioContext = window.AudioContext || window.webkitAudioContext;
   context = new AudioContext({
     // if Non-interactive, use 'playback' or 'balanced' // https://developer.mozilla.org/en-US/docs/Web/API/AudioContextLatencyCategory
@@ -43,16 +55,7 @@ function initRecording() {
   processor.connect(context.destination);
   context.resume();
 
-  var handleSuccess = function (stream) {
-    globalStream = stream;
-    input = context.createMediaStreamSource(stream);
-    input.connect(processor);
 
-    processor.onaudioprocess = function (e) {
-      console.log('Audio processing');
-      microphoneProcess(e);
-    };
-  };
 
   /*
   if (navigator.mediaDevices.getUserMedia) {
@@ -207,15 +210,6 @@ socket.on('hateSpeechDetection', function(data) {
   }else{
     //console.log("none hate speech");
   }
-  //resultHateSpeechText.appendChild(newSpan);
-
-
-
-
-  //resultHateSpeechText.lastElementChild.appendChild(wholeString);
-
-
-
 });
 
 //================= Juggling Spans for nlp Coloring =================
