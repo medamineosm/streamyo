@@ -1,5 +1,4 @@
 'use strict';
-
 const express = require('express'); const environmentVars = require('dotenv').config();
 
 // Google Cloud
@@ -9,7 +8,7 @@ const speechClient = new speech.SpeechClient(); // Creates a client
 const app = express();
 const port = process.env.PORT || 1337;
 const server = require('http').createServer(app);
-
+const httpReq = require('request');
 const io = require('socket.io')(server);
 
 app.use('/assets', express.static(__dirname + '/public'));
@@ -67,6 +66,9 @@ io.on('connection', function (client) {
         );
         client.emit('speechData', data);
 
+        // =========================== NLP-Machine-Learning ================================ //
+        isHateSpeech(data.results[0].alternatives[0].transcript, client);
+
         // if end of utterance, let's restart stream
         // this is a small hack. After 65 seconds of silence, the stream will still throw an error for speech length limit
         if (data.results[0] && data.results[0].isFinal) {
@@ -84,6 +86,20 @@ io.on('connection', function (client) {
     recognizeStream = null;
   }
 });
+// =========================== NLP-Machine-Learning ================================ //
+function isHateSpeech(text, client){
+  let word = JSON.stringify({
+    text: text
+  });
+  httpReq.post({
+    headers: {"Content-Type": "application/json"},
+    url:     'http://localhost:9091/label',
+    body:  word
+  }, function(error, response, body){
+    console.log("Hate Speech Detection : " + body);
+    client.emit('hateSpeechDetection', body);
+  });
+}
 
 // =========================== GOOGLE CLOUD SETTINGS ================================ //
 
@@ -107,6 +123,7 @@ const request = {
   },
   interimResults: true, // If you want interim results, set this to true
 };
+
 
 // =========================== START SERVER ================================ //
 

@@ -3,7 +3,7 @@
 
 //connection to socket
 const socket = io.connect();
-const http = require("http");
+
 //================= CONFIG =================
 // Stream Audio
 let bufferSize = 2048,
@@ -17,6 +17,7 @@ let bufferSize = 2048,
 let audioElement = document.querySelector('audio'),
   finalWord = false,
   resultText = document.getElementById('ResultText'),
+  resultHateSpeechText = document.getElementById('ResultHateSpeechText'),
   removeLastSentence = true,
   streamStreaming = false;
 
@@ -49,7 +50,6 @@ function initRecording() {
 
     processor.onaudioprocess = function (e) {
       console.log('Audio processing');
-      console.log("isHateSpeech('love'): " + isHateSpeech("love you"))
       microphoneProcess(e);
     };
   };
@@ -193,10 +193,35 @@ socket.on('speechData', function (data) {
   }
 });
 
+
+socket.on('hateSpeechDetection', function(data) {
+  var speechData = JSON.parse(data);
+  let hateSpeechSpan = document.getElementById('hateSpeechSpan');
+  hateSpeechSpan.innerText = speechData.text;
+  if(speechData.label === 0){
+    hateSpeechSpan.classList.remove('offensif')
+    hateSpeechSpan.classList.add("hate");
+  }else if(speechData.label === 1){
+    hateSpeechSpan.classList.remove('hate')
+    hateSpeechSpan.classList.add("offensif");
+  }else{
+    //console.log("none hate speech");
+  }
+  //resultHateSpeechText.appendChild(newSpan);
+
+
+
+
+  //resultHateSpeechText.lastElementChild.appendChild(wholeString);
+
+
+
+});
+
 //================= Juggling Spans for nlp Coloring =================
 function addTimeSettingsInterim(speechData) {
   let wholeString = speechData.results[0].alternatives[0].transcript;
-  console.log(wholeString);
+  //console.log(wholeString);
 
   let nlpObject = nlp(wholeString).out('terms');
 
@@ -277,36 +302,6 @@ window.onbeforeunload = function () {
     socket.emit('endGoogleCloudStream', '');
   }
 };
-
-//================= NLP-HATE-DETECTION =================
-function isHateSpeech(text){
-
-
-
-  let body = JSON.stringify({
-    text: text
-  })
-  let options = {
-    hostname: "localhost:9091",
-    path: "/label",
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    }
-  }
-  http
-  .request(options, res => {
-    let data = ""
-    res.on("data", d => {
-      data += d
-    })
-    res.on("end", () => {
-      console.log(data)
-    })
-  })
-  .on("error", console.error)
-  .end(body)
-}
 
 //================= SANTAS HELPERS =================
 

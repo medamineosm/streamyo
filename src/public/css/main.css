@@ -35,6 +35,12 @@ audio {
 .greyText {
     opacity: 0.4;
 }
+.hate {
+  background-color: red;
+}
+.offensif {
+  background-color: #FFA500;
+}
 
 @-webkit-keyframes redGlow {
   from {
